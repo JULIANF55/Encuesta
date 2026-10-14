@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Una pregunta importante 💖</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fbc2eb, #a18cd1);
+    background-size: 300% 300%;
+    animation: bg 12s ease infinite;
+    color: #5b1a43;
+    overflow-x: hidden;
+  }
+  @keyframes bg { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+  .floaty { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  .floaty span { position: absolute; bottom: -60px; font-size: 24px; opacity: .6; animation: up linear infinite; }
+  @keyframes up { to { transform: translateY(-115vh) rotate(360deg); opacity: 0; } }
+
+  .screen {
+    display: none; position: relative; z-index: 1;
+    min-height: 100vh; padding: 24px;
+    flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; gap: 18px;
+  }
+  .screen.active { display: flex; animation: pop .5s ease; }
+  @keyframes pop { from { opacity: 0; transform: scale(.9) translateY(20px); } to { opacity: 1; transform: none; } }
+
+  .card {
+    background: rgba(255,255,255,.75);
+    backdrop-filter: blur(6px);
+    border-radius: 28px;
+    padding: 32px 26px;
+    max-width: 560px; width: 100%;
+    box-shadow: 0 12px 40px rgba(180, 50, 110, .25);
+    display: flex; flex-direction: column; align-items: center; gap: 18px;
+  }
+  h1 { font-size: clamp(1.8rem, 6vw, 2.8rem); line-height: 1.2; }
+  .sub { font-size: clamp(.95rem, 3.2vw, 1.15rem); opacity: .85; }
+  .big-emoji { font-size: 4.5rem; animation: beat 1.2s infinite; }
+  @keyframes beat { 0%,100%{transform:scale(1)} 50%{transform:scale(1.18)} }
+
+  button, select, input[type=date] {
+    font-family: inherit; font-size: 1.1rem; border: none; border-radius: 999px;
+    padding: 14px 30px; cursor: pointer; transition: transform .15s, box-shadow .15s;
+  }
+  button { font-weight: 700; color: #fff; box-shadow: 0 6px 16px rgba(0,0,0,.2); }
+  button:hover { transform: scale(1.06); }
+  button:active { transform: scale(.96); }
+  .btn-yes { background: linear-gradient(135deg, #ff4e8a, #ff2e63); }
+  .btn-no  { background: linear-gradient(135deg, #7f8fa6, #576574); }
+  .btn-main { background: linear-gradient(135deg, #a55eea, #8854d0); }
+  .btn-ok { background: linear-gradient(135deg, #20bf6b, #0fb9b1); }
+  .row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; align-items: center; }
+
+  select, input[type=date] {
+    background: #fff; color: #5b1a43; border: 3px solid #ff9ac2;
+    box-shadow: 0 4px 10px rgba(0,0,0,.1); width: min(320px, 100%); text-align: center;
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100%; font-weight: 600; }
+  .error { color: #d63031; font-weight: 700; min-height: 1.2em; }
+
+  .foods { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; }
+  .foods button { background: linear-gradient(135deg, #ff9f43, #ee5a24); padding: 18px 10px; font-size: 1.15rem; }
+  .foods button span { display: block; font-size: 2.2rem; margin-bottom: 4px; }
+
+  .ticket {
+    background: #fffdf5; border: 3px dashed #ff6b9d; border-radius: 20px;
+    padding: 22px; width: 100%; text-align: left; position: relative;
+    font-family: "Courier New", monospace; color: #4a2040;
+  }
+  .ticket h2 { text-align: center; margin-bottom: 12px; font-size: 1.3rem; }
+  .ticket p { margin: 8px 0; font-size: 1.05rem; }
+  .ticket b { color: #d6246e; }
+  .stamp {
+    position: absolute; right: 10px; bottom: 10px; transform: rotate(-14deg);
+    border: 4px solid #20bf6b; color: #20bf6b; padding: 4px 10px; border-radius: 10px;
+    font-weight: 900; font-size: 1rem; opacity: .85;
+  }
+  .status { font-size: .85rem; opacity: .7; min-height: 1.2em; }
+
+  .confetti { position: fixed; top: -40px; font-size: 26px; z-index: 50; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
+</style>
+</head>
+<body>
+
+<div class="floaty" id="floaty"></div>
+
+<!-- 1. Pregunta -->
+<section class="screen active" id="s1">
+  <div class="card">
+    <div class="big-emoji">💘</div>
+    <h1>¿Quieres salir conmigo? 🥺👉👈</h1>
+    <div class="row" id="btnRow">
+      <button class="btn-yes" id="yesBtn">Sí 💖</button>
+      <button class="btn-no" id="noBtn">No 💔</button>
+    </div>
+    <p class="sub" id="noMsg"></p>
+  </div>
+</section>
+
+<!-- 2. Sorpresa -->
+<section class="screen" id="s2">
+  <div class="card">
+    <div class="big-emoji">😳</div>
+    <h1>¿De verdad acabas de decir que sí? 🎉</h1>
+    <p class="sub">Ya me estaba preparando para que dijeras que no 😅</p>
+    <button class="btn-main" data-next="s3">Bueno bueno 😏</button>
+  </div>
+</section>
+
+<!-- 3. Día y hora -->
+<section class="screen" id="s3">
+  <div class="card">
+    <div class="big-emoji">🗓️</div>
+    <h1>Entonces... ¿cuándo tienes tiempo libre? ⏰</h1>
+    <div class="field">
+      <label for="dia">Elige un día 📅</label>
+      <input type="date" id="dia">
+    </div>
+    <div class="field">
+      <label for="hora">¿A qué hora? 🕒</label>
+      <select id="hora"><option value="">Elige una hora</option></select>
+    </div>
+    <p class="error" id="err3"></p>
+    <button class="btn-main" id="confirmBtn">Confirmemos la cita ✨</button>
+  </div>
+</section>
+
+<!-- 4. Comida -->
+<section class="screen" id="s4">
+  <div class="card">
+    <div class="big-emoji">🍽️</div>
+    <h1>¿Qué quieres comer? 😋</h1>
+    <p class="sub">Elige lo que se te antoja</p>
+    <div class="foods">
+      <button data-food="Pizza 🍕"><span>🍕</span>Pizza</button>
+      <button data-food="Hamburguesa 🍔"><span>🍔</span>Hamburguesa</button>
+      <button data-food="Helado 🍦"><span>🍦</span>Helado</button>
+      <button data-food="Sushi 🍣"><span>🍣</span>Sushi</button>
+      <button data-food="Tacos 🌮"><span>🌮</span>Tacos</button>
+      <button data-food="Perro caliente 🌭"><span>🌭</span>Perro caliente</button>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Alístate -->
+<section class="screen" id="s5">
+  <div class="card">
+    <div class="big-emoji">🚗💨</div>
+    <h1>Me alegra que no hayas dicho que no 💕</h1>
+    <h1 style="font-size:clamp(1.3rem,5vw,2rem)">Alístate, paso por ti a las <span id="pickup" style="color:#d6246e"></span> 😎</h1>
+    <button class="btn-ok" id="acceptBtn">Está bien, acepto 💍😂</button>
+  </div>
+</section>
+
+<!-- 6. Resumen -->
+<section class="screen" id="s6">
+  <div class="card">
+    <div class="big-emoji">🥰</div>
+    <h1>¡Cita confirmada! 🎊</h1>
+    <div class="ticket">
+      <h2>🎟️ TICKET OFICIAL DE CITA 🎟️</h2>
+      <p>📅 Día: <b id="rDia"></b></p>
+      <p>🕒 Hora de la cita: <b id="rHora"></b></p>
+      <p>🚗 Paso por ti a las: <b id="rPickup"></b></p>
+      <p>🍽️ Antojo: <b id="rComida"></b></p>
+      <p>😬 Nervios del organizador: <b>99%</b></p>
+      <p>⚠️ Cancelaciones: <b>no aplican</b> 😜</p>
+      <div class="stamp">APROBADO ✅</div>
+    </div>
+    <p class="sub">Prometo ser puntual pero ruega porque no llueva 🥶🌧️</p>
+    <p class="status" id="status"></p>
+  </div>
+</section>
+
+<script>
+  // ⚙️ Correo que recibe la respuesta (vía FormSubmit.co)
+  const EMAIL = "julianforero55555@gmail.com";
+
+  const $ = (id) => document.getElementById(id);
+  const datos = { dia: "", hora: "", comida: "" };
+
+  // Corazones flotantes de fondo
+  const fl = $("floaty");
+  const icons = ["💖","💕","💗","💘","✨","🌸","💞"];
+  for (let i = 0; i < 22; i++) {
+    const s = document.createElement("span");
+    s.textContent = icons[i % icons.length];
+    s.style.left = Math.random() * 100 + "vw";
+    s.style.fontSize = 16 + Math.random() * 28 + "px";
+    s.style.animationDuration = 8 + Math.random() * 12 + "s";
+    s.style.animationDelay = -Math.random() * 15 + "s";
+    fl.appendChild(s);
+  }
+
+  function show(id) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    $(id).classList.add("active");
+    window.scrollTo(0, 0);
+  }
+
+  // --- Pantalla 1: botón "No" escurridizo ---
+  const noBtn = $("noBtn"), yesBtn = $("yesBtn");
+  const frases = [
+    "¿Segura? 🥺", "Piénsalo bien... 👀", "Ese botón está roto 🛠️",
+    "Casi lo logras 😂", "Mejor di que sí 💖", "No te dejes engañar 🙈",
+    "Insisto 😏", "El botón del Sí te espera 💘"
+  ];
+  let intentos = 0;
+  function moverNo(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    intentos++;
+    noBtn.style.position = "fixed";
+    noBtn.style.zIndex = 20;
+    const w = noBtn.offsetWidth, h = noBtn.offsetHeight;
+    const x = Math.random() * Math.max(10, window.innerWidth - w - 20) + 10;
+    const y = Math.random() * Math.max(10, window.innerHeight - h - 20) + 10;
+    noBtn.style.left = x + "px";
+    noBtn.style.top = y + "px";
+    $("noMsg").textContent = frases[(intentos - 1) % frases.length];
+    // El Sí crece un poquito cada vez 😈
+    yesBtn.style.transform = "scale(" + Math.min(1 + intentos * 0.12, 2) + ")";
+    yesBtn.style.margin = Math.min(intentos * 4, 30) + "px";
+  }
+  noBtn.addEventListener("pointerdown", moverNo);
+  noBtn.addEventListener("click", moverNo);
+
+  yesBtn.addEventListener("click", () => { confeti(30); show("s2"); });
+
+  // --- Navegación simple ---
+  document.querySelectorAll("[data-next]").forEach(b =>
+    b.addEventListener("click", () => show(b.dataset.next)));
+
+  // --- Pantalla 3: día y hora ---
+  const diaInput = $("dia");
+  const hoy = new Date();
+  diaInput.min = hoy.getFullYear() + "-" + String(hoy.getMonth()+1).padStart(2,"0") + "-" + String(hoy.getDate()).padStart(2,"0");
+
+  const horaSel = $("hora");
+  function fmt12(h, m) {
+    const suf = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return h12 + ":" + String(m).padStart(2, "0") + " " + suf;
+  }
+  for (let h = 10; h <= 22; h++) {
+    for (const m of [0, 30]) {
+      if (h === 22 && m === 30) continue;
+      const o = document.createElement("option");
+      o.value = h + ":" + m;
+      o.textContent = fmt12(h, m);
+      horaSel.appendChild(o);
+    }
+  }
+
+  $("confirmBtn").addEventListener("click", () => {
+    if (!diaInput.value) { $("err3").textContent = "Elige un día primero 📅"; return; }
+    if (!horaSel.value) { $("err3").textContent = "Falta la hora 🕒"; return; }
+    $("err3").textContent = "";
+    const [y, mo, d] = diaInput.value.split("-").map(Number);
+    const fecha = new Date(y, mo - 1, d);
+    let txt = fecha.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    datos.dia = txt.charAt(0).toUpperCase() + txt.slice(1);
+
+    const [h, m] = horaSel.value.split(":").map(Number);
+    datos.hora = fmt12(h, m);
+    // Recogida: una hora antes
+    let total = h * 60 + m - 60;
+    datos.pickup = fmt12(Math.floor(total / 60), total % 60);
+    show("s4");
+  });
+
+  // --- Pantalla 4: comida ---
+  document.querySelectorAll("[data-food]").forEach(b =>
+    b.addEventListener("click", () => {
+      datos.comida = b.dataset.food;
+      $("pickup").textContent = datos.pickup;
+      show("s5");
+    }));
+
+  // --- Pantalla 5: aceptar y enviar por correo ---
+  $("acceptBtn").addEventListener("click", () => {
+    $("rDia").textContent = datos.dia;
+    $("rHora").textContent = datos.hora;
+    $("rPickup").textContent = datos.pickup;
+    $("rComida").textContent = datos.comida;
+    show("s6");
+    confeti(70);
+    enviar();
+  });
+
+  async function enviar() {
+    const st = $("status");
+    st.textContent = "Enviando confirmación... 📨";
+    try {
+      const r = await fetch("https://formsubmit.co/ajax/" + EMAIL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          _subject: "💖 ¡DIJO QUE SÍ! Detalles de la cita",
+          _template: "table",
+          Respuesta: "¡Aceptó la cita! 🎉",
+          Dia: datos.dia,
+          Hora_de_la_cita: datos.hora,
+          Hora_de_recogida: datos.pickup,
+          Comida: datos.comida
+        })
+      });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      st.textContent = "Confirmación enviada ✅";
+    } catch (err) {
+      console.error(err);
+      st.textContent = "";
+    }
+  }
+
+  // Confeti de emojis
+  function confeti(n) {
+    const em = ["🎉","💖","✨","🎊","💕","🌸","🥳"];
+    for (let i = 0; i < n; i++) {
+      const c = document.createElement("div");
+      c.className = "confetti";
+      c.textContent = em[Math.floor(Math.random() * em.length)];
+      c.style.left = Math.random() * 100 + "vw";
+      c.style.animationDuration = 2 + Math.random() * 3 + "s";
+      c.style.animationDelay = Math.random() * 0.8 + "s";
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 6500);
+    }
+  }
+</script>
+</body>
+</html>
